@@ -34,13 +34,13 @@ SQL primero. PySpark si SQL no alcanza. Python al final.
 
 ## Specs
 
-Una spec por capa:
+Una spec por capa, dentro de la carpeta de esa capa:
 
-- `specs/landing.md`
-- `specs/bronze.md`
-- `specs/silver.md`
-- `specs/gold.md`
-- `specs/semantic.md`
+- `landing/spec.md`
+- `bronze/spec.md`
+- `silver/spec.md`
+- `gold/spec.md`
+- `semantic/spec.md`
 
 Dentro de cada spec, una sección por tabla. Cada sección declara el grano de la fila, las columnas y las reglas de esa capa.
 
