@@ -1,0 +1,21 @@
+bundle:
+  name: compras_estado
+
+include:
+  - resources/*.yml
+
+variables:
+  warehouse_id:
+    lookup:
+      warehouse: "Serverless Starter Warehouse"
+  catalog:
+    default: compras_estado
+  schema:
+    default: semantic
+
+targets:
+  dev:
+    default: true
+    mode: development
+    workspace:
+      profile: real-state

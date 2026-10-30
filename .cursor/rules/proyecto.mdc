@@ -1,0 +1,49 @@
+---
+description: Convenciones de compras_estado — modelo, capas, specs y lenguaje
+alwaysApply: true
+---
+
+# compras_estado
+
+Catálogo Databricks: `compras_estado`. Fuente: COMPR.AR en datos.gob.ar.
+
+## Fuentes
+
+Dos CSV. Cada archivo es una tabla propia.
+
+| Tabla | Grano |
+|---|---|
+| adjudicaciones | Una orden de compra: organismo, proveedor, monto, moneda, fecha |
+| convocatorias | Un proceso de compra. El objeto está en `Objeto_del_Proceso` |
+
+El cruce entre ambas es `Numero_Proceso`, y se hace en Silver.
+
+## Capas
+
+`landing` → `bronze` → `silver` → `gold` → `semantic`
+
+- **landing**: el archivo como llegó
+- **bronze**: una tabla por archivo; columnas en texto
+- **silver**: tipos, claves y el cruce por `Numero_Proceso`
+- **gold**: hecho de la orden de compra y agregados
+- **semantic**: el nombre de cada métrica
+
+## Lenguaje
+
+SQL primero. PySpark si SQL no alcanza. Python al final.
+
+## Specs
+
+Una spec por capa:
+
+- `specs/landing.md`
+- `specs/bronze.md`
+- `specs/silver.md`
+- `specs/gold.md`
+- `specs/semantic.md`
+
+Dentro de cada spec, una sección por tabla. Cada sección declara el grano de la fila, las columnas y las reglas de esa capa.
+
+Se trabaja una capa a la vez. La spec de la capa en curso se cierra antes de abrir la siguiente.
+
+Las specs se modifican solo cuando Cristian lo pide de forma explícita.

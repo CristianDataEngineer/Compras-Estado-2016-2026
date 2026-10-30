@@ -1,0 +1,8 @@
+resources:
+  dashboards:
+    compras:
+      display_name: "Compras del Estado"
+      file_path: ../src/dashboards/compras.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      dataset_catalog: ${var.catalog}
+      dataset_schema: ${var.schema}

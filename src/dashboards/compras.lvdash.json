@@ -1,0 +1,354 @@
+{
+  "datasets": [
+    {
+      "name": "total",
+      "displayName": "Total por año",
+      "query": "SELECT Ejercicio, Moneda, ordenes, monto_total\nFROM compras_estado.semantic.total_por_anio"
+    },
+    {
+      "name": "organismo",
+      "displayName": "Organismo",
+      "query": "SELECT\n  Descripcion_SAF_orden,\n  Ejercicio,\n  Moneda,\n  COUNT(*) AS ordenes,\n  SUM(Monto) AS monto_total\nFROM compras_estado.semantic.ordenes\nGROUP BY Descripcion_SAF_orden, Ejercicio, Moneda"
+    },
+    {
+      "name": "oficina",
+      "displayName": "Oficina",
+      "query": "SELECT\n  Descripcion_UOC_orden,\n  Ejercicio,\n  Moneda,\n  COUNT(*) AS ordenes,\n  SUM(Monto) AS monto_total\nFROM compras_estado.semantic.ordenes\nGROUP BY Descripcion_UOC_orden, Ejercicio, Moneda"
+    },
+    {
+      "name": "proveedores",
+      "displayName": "Proveedores",
+      "query": "SELECT\n  CUIT,\n  Descripcion_Proveedor,\n  Ejercicio,\n  Moneda,\n  COUNT(*) AS ordenes,\n  COUNT(DISTINCT compra_id) AS compras,\n  SUM(Monto) AS monto_total\nFROM compras_estado.semantic.ordenes\nGROUP BY CUIT, Descripcion_Proveedor, Ejercicio, Moneda"
+    },
+    {
+      "name": "rubros",
+      "displayName": "Rubros",
+      "query": "SELECT Ejercicio, Moneda, orden_id, rubro\nFROM (\n  SELECT\n    Ejercicio,\n    Moneda,\n    orden_id,\n    TRIM(rubro) AS rubro\n  FROM compras_estado.semantic.ordenes\n  LATERAL VIEW EXPLODE(SPLIT(Rubros, ';')) AS rubro\n)\nWHERE rubro <> ''"
+    },
+    {
+      "name": "estimado",
+      "displayName": "Estimado y adjudicado",
+      "query": "SELECT\n  Numero_Proceso,\n  Nombre_del_Proceso,\n  Ejercicio,\n  Moneda,\n  Monto_Estimado,\n  SUM(Monto) AS monto_adjudicado,\n  COUNT(*) AS ordenes\nFROM compras_estado.semantic.ordenes\nWHERE compra_id IS NOT NULL\nGROUP BY Numero_Proceso, Nombre_del_Proceso, Ejercicio, Moneda, Monto_Estimado"
+    }
+  ],
+  "pages": [
+    {
+      "name": "compras",
+      "displayName": "Compras",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layoutVersion": "GRID_V1",
+      "layout": [
+        {
+          "position": {"x": 0, "y": 0, "width": 12, "height": 1},
+          "widget": {
+            "name": "titulo",
+            "multilineTextboxSpec": {
+              "lines": ["## Compras del Estado"]
+            }
+          }
+        },
+        {
+          "position": {"x": 0, "y": 1, "width": 12, "height": 1},
+          "widget": {
+            "name": "subtitulo",
+            "multilineTextboxSpec": {
+              "lines": ["Pesos y dólares van aparte. Si no elegís un año, entra la fila sin año."]
+            }
+          }
+        },
+        {
+          "position": {"x": 0, "y": 2, "width": 3, "height": 2},
+          "widget": {
+            "name": "filtro_anio",
+            "queries": [
+              {"name": "anio_total", "query": {"datasetName": "total", "disaggregated": false, "fields": [{"name": "Ejercicio", "expression": "`Ejercicio`"}, {"name": "Ejercicio_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "anio_organismo", "query": {"datasetName": "organismo", "disaggregated": false, "fields": [{"name": "Ejercicio", "expression": "`Ejercicio`"}, {"name": "Ejercicio_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "anio_oficina", "query": {"datasetName": "oficina", "disaggregated": false, "fields": [{"name": "Ejercicio", "expression": "`Ejercicio`"}, {"name": "Ejercicio_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "anio_proveedores", "query": {"datasetName": "proveedores", "disaggregated": false, "fields": [{"name": "Ejercicio", "expression": "`Ejercicio`"}, {"name": "Ejercicio_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "anio_rubros", "query": {"datasetName": "rubros", "disaggregated": false, "fields": [{"name": "Ejercicio", "expression": "`Ejercicio`"}, {"name": "Ejercicio_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "anio_estimado", "query": {"datasetName": "estimado", "disaggregated": false, "fields": [{"name": "Ejercicio", "expression": "`Ejercicio`"}, {"name": "Ejercicio_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}}
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {"fieldName": "Ejercicio", "displayName": "Año", "queryName": "anio_total"},
+                  {"fieldName": "Ejercicio", "displayName": "Año", "queryName": "anio_organismo"},
+                  {"fieldName": "Ejercicio", "displayName": "Año", "queryName": "anio_oficina"},
+                  {"fieldName": "Ejercicio", "displayName": "Año", "queryName": "anio_proveedores"},
+                  {"fieldName": "Ejercicio", "displayName": "Año", "queryName": "anio_rubros"},
+                  {"fieldName": "Ejercicio", "displayName": "Año", "queryName": "anio_estimado"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Año"}
+            }
+          }
+        },
+        {
+          "position": {"x": 3, "y": 2, "width": 3, "height": 2},
+          "widget": {
+            "name": "filtro_moneda",
+            "queries": [
+              {"name": "moneda_total", "query": {"datasetName": "total", "disaggregated": false, "fields": [{"name": "Moneda", "expression": "`Moneda`"}, {"name": "Moneda_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "moneda_organismo", "query": {"datasetName": "organismo", "disaggregated": false, "fields": [{"name": "Moneda", "expression": "`Moneda`"}, {"name": "Moneda_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "moneda_oficina", "query": {"datasetName": "oficina", "disaggregated": false, "fields": [{"name": "Moneda", "expression": "`Moneda`"}, {"name": "Moneda_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "moneda_proveedores", "query": {"datasetName": "proveedores", "disaggregated": false, "fields": [{"name": "Moneda", "expression": "`Moneda`"}, {"name": "Moneda_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "moneda_rubros", "query": {"datasetName": "rubros", "disaggregated": false, "fields": [{"name": "Moneda", "expression": "`Moneda`"}, {"name": "Moneda_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}},
+              {"name": "moneda_estimado", "query": {"datasetName": "estimado", "disaggregated": false, "fields": [{"name": "Moneda", "expression": "`Moneda`"}, {"name": "Moneda_associativity", "expression": "COUNT_IF(`associative_filter_predicate_group`)"}]}}
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {"fieldName": "Moneda", "displayName": "Moneda", "queryName": "moneda_total"},
+                  {"fieldName": "Moneda", "displayName": "Moneda", "queryName": "moneda_organismo"},
+                  {"fieldName": "Moneda", "displayName": "Moneda", "queryName": "moneda_oficina"},
+                  {"fieldName": "Moneda", "displayName": "Moneda", "queryName": "moneda_proveedores"},
+                  {"fieldName": "Moneda", "displayName": "Moneda", "queryName": "moneda_rubros"},
+                  {"fieldName": "Moneda", "displayName": "Moneda", "queryName": "moneda_estimado"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Moneda"}
+            }
+          }
+        },
+        {
+          "position": {"x": 6, "y": 2, "width": 3, "height": 2},
+          "widget": {
+            "name": "ordenes",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "total",
+                  "disaggregated": false,
+                  "fields": [{"name": "sum(ordenes)", "expression": "SUM(`ordenes`)"}]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {"fieldName": "sum(ordenes)", "displayName": "Órdenes"}
+              },
+              "frame": {"showTitle": true, "title": "Órdenes"}
+            }
+          }
+        },
+        {
+          "position": {"x": 0, "y": 4, "width": 12, "height": 5},
+          "widget": {
+            "name": "monto_por_anio",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "total",
+                  "disaggregated": true,
+                  "fields": [
+                    {"name": "Ejercicio", "expression": "`Ejercicio`"},
+                    {"name": "Moneda", "expression": "`Moneda`"},
+                    {"name": "monto_total", "expression": "`monto_total`"}
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {"fieldName": "Ejercicio", "displayName": "Año", "scale": {"type": "categorical"}},
+                "y": {"fieldName": "monto_total", "displayName": "Monto", "scale": {"type": "quantitative"}},
+                "color": {"fieldName": "Moneda", "displayName": "Moneda", "scale": {"type": "categorical"}}
+              },
+              "frame": {"showTitle": true, "title": "Monto por año"}
+            }
+          }
+        },
+        {
+          "position": {"x": 0, "y": 9, "width": 6, "height": 6},
+          "widget": {
+            "name": "tabla_organismo",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "organismo",
+                  "disaggregated": true,
+                  "fields": [
+                    {"name": "Descripcion_SAF_orden", "expression": "`Descripcion_SAF_orden`"},
+                    {"name": "Ejercicio", "expression": "`Ejercicio`"},
+                    {"name": "Moneda", "expression": "`Moneda`"},
+                    {"name": "ordenes", "expression": "`ordenes`"},
+                    {"name": "monto_total", "expression": "`monto_total`"}
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "Descripcion_SAF_orden", "displayName": "Organismo"},
+                  {"fieldName": "Ejercicio", "displayName": "Año"},
+                  {"fieldName": "Moneda", "displayName": "Moneda"},
+                  {"fieldName": "ordenes", "displayName": "Órdenes"},
+                  {"fieldName": "monto_total", "displayName": "Monto"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Organismo"}
+            }
+          }
+        },
+        {
+          "position": {"x": 6, "y": 9, "width": 6, "height": 6},
+          "widget": {
+            "name": "tabla_oficina",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "oficina",
+                  "disaggregated": true,
+                  "fields": [
+                    {"name": "Descripcion_UOC_orden", "expression": "`Descripcion_UOC_orden`"},
+                    {"name": "Ejercicio", "expression": "`Ejercicio`"},
+                    {"name": "Moneda", "expression": "`Moneda`"},
+                    {"name": "ordenes", "expression": "`ordenes`"},
+                    {"name": "monto_total", "expression": "`monto_total`"}
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "Descripcion_UOC_orden", "displayName": "Oficina"},
+                  {"fieldName": "Ejercicio", "displayName": "Año"},
+                  {"fieldName": "Moneda", "displayName": "Moneda"},
+                  {"fieldName": "ordenes", "displayName": "Órdenes"},
+                  {"fieldName": "monto_total", "displayName": "Monto"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Oficina"}
+            }
+          }
+        },
+        {
+          "position": {"x": 0, "y": 15, "width": 12, "height": 6},
+          "widget": {
+            "name": "barras_rubros",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "rubros",
+                  "disaggregated": false,
+                  "fields": [
+                    {"name": "rubro", "expression": "`rubro`"},
+                    {"name": "ordenes", "expression": "COUNT(DISTINCT `orden_id`)"}
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {"fieldName": "rubro", "displayName": "Rubro", "scale": {"type": "categorical"}},
+                "y": {"fieldName": "ordenes", "displayName": "Órdenes", "scale": {"type": "quantitative"}}
+              },
+              "frame": {"showTitle": true, "title": "Rubros"}
+            }
+          }
+        },
+        {
+          "position": {"x": 0, "y": 21, "width": 12, "height": 6},
+          "widget": {
+            "name": "tabla_proveedores",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "proveedores",
+                  "disaggregated": true,
+                  "fields": [
+                    {"name": "CUIT", "expression": "`CUIT`"},
+                    {"name": "Descripcion_Proveedor", "expression": "`Descripcion_Proveedor`"},
+                    {"name": "Ejercicio", "expression": "`Ejercicio`"},
+                    {"name": "Moneda", "expression": "`Moneda`"},
+                    {"name": "ordenes", "expression": "`ordenes`"},
+                    {"name": "compras", "expression": "`compras`"},
+                    {"name": "monto_total", "expression": "`monto_total`"}
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "CUIT", "displayName": "CUIT"},
+                  {"fieldName": "Descripcion_Proveedor", "displayName": "Proveedor"},
+                  {"fieldName": "Ejercicio", "displayName": "Año"},
+                  {"fieldName": "Moneda", "displayName": "Moneda"},
+                  {"fieldName": "ordenes", "displayName": "Órdenes"},
+                  {"fieldName": "compras", "displayName": "Compras"},
+                  {"fieldName": "monto_total", "displayName": "Monto"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Proveedores"}
+            }
+          }
+        },
+        {
+          "position": {"x": 0, "y": 27, "width": 12, "height": 6},
+          "widget": {
+            "name": "tabla_estimado",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "estimado",
+                  "disaggregated": true,
+                  "fields": [
+                    {"name": "Numero_Proceso", "expression": "`Numero_Proceso`"},
+                    {"name": "Nombre_del_Proceso", "expression": "`Nombre_del_Proceso`"},
+                    {"name": "Ejercicio", "expression": "`Ejercicio`"},
+                    {"name": "Moneda", "expression": "`Moneda`"},
+                    {"name": "Monto_Estimado", "expression": "`Monto_Estimado`"},
+                    {"name": "monto_adjudicado", "expression": "`monto_adjudicado`"},
+                    {"name": "ordenes", "expression": "`ordenes`"}
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {"fieldName": "Numero_Proceso", "displayName": "Proceso"},
+                  {"fieldName": "Nombre_del_Proceso", "displayName": "Nombre"},
+                  {"fieldName": "Ejercicio", "displayName": "Año"},
+                  {"fieldName": "Moneda", "displayName": "Moneda"},
+                  {"fieldName": "Monto_Estimado", "displayName": "Estimado"},
+                  {"fieldName": "monto_adjudicado", "displayName": "Adjudicado"},
+                  {"fieldName": "ordenes", "displayName": "Órdenes"}
+                ]
+              },
+              "frame": {"showTitle": true, "title": "Estimado y adjudicado"}
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
