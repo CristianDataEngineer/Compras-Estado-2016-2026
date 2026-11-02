@@ -27,6 +27,10 @@ semantic/    nombre de cada métrica
 
 ## Cómo se lee
 
-Cada organismo y cada oficina, en su moneda. Pesos y dólares no se suman. El año vacío es una orden que llegó sin ejercicio.
+Pesos y dólares van aparte. Si no se elige un año, entra la fila sin año.
 
-![Organismo y oficina](resultado.png)
+![Monto por año, organismo y oficina](monto-por-anio.png)
+
+![Rubros y proveedores](rubros-proveedores.png)
+
+![Estimado y adjudicado](estimado-adjudicado.png)
