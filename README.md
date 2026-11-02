@@ -24,3 +24,9 @@ silver/      tipos, claves, cruce por proceso
 gold/        hecho de la orden de compra y agregados
 semantic/    nombre de cada métrica
 ```
+
+## Cómo se lee
+
+Cada organismo y cada oficina, en su moneda. Pesos y dólares no se suman. El año vacío es una orden que llegó sin ejercicio.
+
+![Organismo y oficina](resultado.png)
